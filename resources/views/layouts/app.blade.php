@@ -9,7 +9,7 @@
 
     <body>
         {{-- ナビゲーションバー --}}
-        @include('commons.navbar');
+        @include('commons.navbar')
 
         <div class="container">
             {{-- エラーメッセージ --}}
