@@ -19,9 +19,9 @@ class TasksController extends Controller
         
         // タスク一覧のビューで表示
         return view('tasks.index', [
-           'tasks' => $tasks,     
+          'tasks' => $tasks,     
         ]);
-        
+
     }
 
     /**
@@ -54,11 +54,11 @@ class TasksController extends Controller
             'content' => 'required',
         ]);
         
-        // タスクを作成
-        $task          = new Task;
-        $task->status  = $request->status;
-        $task->content = $request->content;
-        $task->save();
+        // 認証済みユーザ（閲覧者）のタスクとして作成（リクエストされた値を元に作成）
+        $request->user()->tasks()->create([
+            'status'  => $request->status,
+            'content' => $request->content,
+        ]);
         
         // トップページへリダイレクトさせる
         return redirect('/');
@@ -116,10 +116,11 @@ class TasksController extends Controller
         // idの値でタスクを検索して取得
         $task = Task::findOrFail($id);
         
-        // タスクを更新
-        $task->status  = $request->status;
-        $task->content = $request->content;
-        $task->save();
+        // 認証済みユーザ（閲覧者）のタスクとして更新（リクエストされた値をもとに更新）
+        $request->user()->tasks()->update([
+           'status'  => $request->status,
+           'content' => $request->content,
+        ]);
         
         // トップページへリダイレクトさせる
         return redirect('/');
@@ -134,10 +135,13 @@ class TasksController extends Controller
     public function destroy($id)
     {
         // idの値でタスクを検索して取得
-        $task = Task::findOrFail($id);
+        $task = \App\Task::findOrFail($id);
         
-        // タスクを削除
-        $task->delete();
+        // 認証済みユーザ（閲覧者）がそのタスクの所有者である場合は投稿を削除
+        if (\Auth::id() === $task->user_id)
+        {
+            $task->delete();
+        }
         
         // トップページへリダイレクト
         return redirect('/');
