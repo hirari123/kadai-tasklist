@@ -52,6 +52,7 @@ class TasksController extends Controller
         $request->validate ([
             'status'  => 'required|max:10',
             'content' => 'required',
+            'user_id' => 'required',
         ]);
         
         // 認証済みユーザ（閲覧者）のタスクとして作成（リクエストされた値を元に作成）
