@@ -58,7 +58,6 @@ class TasksController extends Controller
         $request->user()->tasks()->create([
             'status'  => $request->status,
             'content' => $request->content,
-            'user_id' => $request->user_id,
         ]);
         
         // トップページへリダイレクトさせる
@@ -121,7 +120,6 @@ class TasksController extends Controller
         $request->user()->tasks()->update([
            'status'  => $request->status,
            'content' => $request->content,
-           'user_id' => $request->user_id,
         ]);
         
         // トップページへリダイレクトさせる
