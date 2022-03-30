@@ -14,14 +14,23 @@ class TasksController extends Controller
      */
     public function index()
     {
-        // タスク一覧を取得
-        $tasks = Task::all();
+        $data = [];
         
+        // 認証済みの場合
+        if (\Auth::check())
+        {
+            // 認証済みユーザ（閲覧者）を取得
+            $user = \Auth::user();
+            
+            // ユーザと、そのユーザのタスク一覧を取得
+            $tasks = $user->tasks()->get();
+            
+            $data = [
+                'tasks' => $tasks,
+            ];
+        }
         // タスク一覧のビューで表示
-        return view('tasks.index', [
-          'tasks' => $tasks,     
-        ]);
-
+        return view('tasks.index', $data);
     }
 
     /**
@@ -75,10 +84,15 @@ class TasksController extends Controller
         // idの値でタスクを検索して取得
         $task = Task::findOrFail($id);
         
-        // タスク詳細のビューで表示
-        return view('tasks.show', [
-           'task' => $task,     
-        ]);
+        // 認証済みユーザ（閲覧者）がそのタスクの所有者である場合は詳細を表示
+        if (\Auth::id() === $task->user_id)
+        {
+            // タスク詳細のビューで表示
+            return view('tasks.show', [
+               'task' => $task,     
+            ]);
+        }
+        return redirect('/');
     }
 
     /**
@@ -91,11 +105,16 @@ class TasksController extends Controller
     {
         // idの値でタスクを検索して取得
         $task = Task::findOrFail($id);
-        
-        // タスク編集のビューで表示
-        return view('tasks.edit', [
-           'task' => $task, 
-        ]);
+       
+        // 認証済みユーザ（閲覧者）がそのタスクの所有者である場合は投稿を編集
+        if (\Auth::id() === $task->user_id)
+        {
+            // タスク編集のビューで表示
+            return view('tasks.edit', [
+               'task' => $task, 
+            ]);
+        }
+        return redirect('/');
     }
 
     /**
@@ -117,10 +136,15 @@ class TasksController extends Controller
         $task = Task::findOrFail($id);
         
         // 認証済みユーザ（閲覧者）のタスクとして更新（リクエストされた値をもとに更新）
-        $request->user()->tasks()->update([
-           'status'  => $request->status,
-           'content' => $request->content,
-        ]);
+        // $request->user()->tasks()->update([
+        //   'status'  => $request->status,
+        //   'content' => $request->content,
+        
+        $task->status  = $request->status;
+        $task->content = $request->content;
+        $task->save();
+        
+        // ]);
         
         // トップページへリダイレクトさせる
         return redirect('/');
